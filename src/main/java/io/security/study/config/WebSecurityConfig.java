@@ -85,10 +85,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .sessionManagement()                // 사용자 세션 관리 시작
+                .sessionFixation().changeSessionId()    //세션 고정보호 기본 값.
+                                                        // none : 세션고정공격에 노출됨
+                                                        // migrateSession: 기존 세션에 마이그레이션.
+                                                        // newSession: 별도의 세션이 따로 생성
+
                 .maximumSessions(1)                 // 최대 허용 가능세션수, -1: 무제한 로그인 세션 허용
                 .maxSessionsPreventsLogin(false)     // 동시로그인 차단, false : 후입자 정책(default), true: 선입자 정책
+
                 /*.invalidSessionUrl("/invalid")      // 세션이 유효하지 않을 때 이동 페이지*/
-                .expiredUrl("/expired")             // 세션 만료시 이동 URL
+                /*.expiredUrl("/expired")             // 세션 만료시 이동 URL*/
+
+
 
         ;
     }
