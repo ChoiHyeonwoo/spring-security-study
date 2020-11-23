@@ -85,7 +85,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .sessionManagement()                // 사용자 세션 관리 시작
-                .sessionFixation().changeSessionId()    //세션 고정보호 기본 값.
+                .sessionFixation().changeSessionId()    //세션 고정보호 (기본 값) - 새션아이디가 따로 만들어짐.
                                                         // none : 세션고정공격에 노출됨
                                                         // migrateSession: 기존 세션에 마이그레이션.
                                                         // newSession: 별도의 세션이 따로 생성
