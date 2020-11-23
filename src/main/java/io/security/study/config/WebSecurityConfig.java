@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -89,6 +90,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                                                         // none : 세션고정공격에 노출됨
                                                         // migrateSession: 기존 세션에 마이그레이션.
                                                         // newSession: 별도의 세션이 따로 생성
+                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                    // 세션 생성정책
+                    // SessionCreationPolicy.ALWAYS: 항상 생성
+                    // SessionCreationPolicy.If_Required: 필요시에만 생성(default)
+                    // SessionCreationPolicy.Never: 생성하진 않지만 이미 존재하면 사용
+                    // SessionCreationPolicy.Stateless: 생성하지않고 존재해도 사용하지 않음(JWT,,,)
+
 
                 .maximumSessions(1)                 // 최대 허용 가능세션수, -1: 무제한 로그인 세션 허용
                 .maxSessionsPreventsLogin(false)     // 동시로그인 차단, false : 후입자 정책(default), true: 선입자 정책
