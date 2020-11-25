@@ -2,6 +2,7 @@ package io.security.study.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -28,10 +29,29 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     UserDetailsService userDetailsService;
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception{       // 임시 사용자 생성
+        auth.inMemoryAuthentication().withUser("user").password("{noop}1111").roles("USER");
+        auth.inMemoryAuthentication().withUser("sys").password("{noop}1111").roles("SYS", "USER");
+        auth.inMemoryAuthentication().withUser("admin").password("{noop}1111").roles("ADMIN", "SYS", "USER");
+
+
+    }
+    
+    protected void configure(HttpSecurity http) throws Exception {          //인가 먼저, 인증로직 나중.
+        http                                        //인가 설정관련 시작
+                /*.antMatcher("/shop/**")             //해당 경로에 대한 권한 체크를 시작
                 .authorizeRequests()
-                .anyRequest().authenticated();  // 인가방식: 어떤 요청에도 인가를 다 받는.
+                .antMatchers("/shop/login", "/shop/users/**").permitAll()       //해당 경로는 모든 사용자에 대해 허용
+                .antMatchers("/shop/mypage").hasRole("USER")
+                .antMatchers("/shop/admin/pay").access("hasRole('ADMIN')")                      // 설정 시 구체적 경로가 먼저 오고 그것보다 큰 범위의 경로가 뒤에 오도록 한다.
+                .antMatchers("/shop/admin/**").access("hasRole('ADMIN') or hasRole('SYS')")     // ex) /shop/admin/pay 먼저 지정후 /shop/admin/** 지정.
+                .anyRequest().authenticated()*/
+                .authorizeRequests()
+                .antMatchers("/user").hasRole("USER")
+                .antMatchers("/admin/pay").hasRole("ADMIN")
+                .antMatchers("/admin/**").access("hasRole('ADMIN') or hasRole('SYS')")
+                .anyRequest().authenticated()
+        ;
         http
                 .formLogin()        // FORM로그인 사용
                 //.loginPage("/loginPage") //로그인 페이지 경로
@@ -103,16 +123,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
                 /*.invalidSessionUrl("/invalid")      // 세션이 유효하지 않을 때 이동 페이지*/
                 /*.expiredUrl("/expired")             // 세션 만료시 이동 URL*/
-        ;
-
-        http                                        //인가 설정관련 시작
-                .antMatcher("/shop/**")             //해당 경로에 대한 권한 체크를 시작
-                .authorizeRequests()
-                .antMatchers("/shop/login", "/shop/users/**").permitAll()       //해당 경로는 모든 사용자에 대해 허용
-                .antMatchers("/shop/mypage").hasRole("USER")
-                .antMatchers("/shop/admin/pay").access("hasRole('ADMIN')")                      // 설정 시 구체적 경로가 먼저 오고 그것보다 큰 범위의 경로가 뒤에 오도록 한다.
-                .antMatchers("/shop/admin/**").access("hasRole('ADMIN') or hasRole('SYS')")     // ex) /shop/admin/pay 먼저 지정후 /shop/admin/** 지정.
-                .anyRequest().authenticated()
         ;
 
 
