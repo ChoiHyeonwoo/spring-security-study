@@ -33,8 +33,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         auth.inMemoryAuthentication().withUser("user").password("{noop}1111").roles("USER");
         auth.inMemoryAuthentication().withUser("sys").password("{noop}1111").roles("SYS", "USER");
         auth.inMemoryAuthentication().withUser("admin").password("{noop}1111").roles("ADMIN", "SYS", "USER");
-
-
     }
     
     protected void configure(HttpSecurity http) throws Exception {          //인가 먼저, 인증로직 나중.
@@ -59,7 +57,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .failureUrl("/login")
                 .usernameParameter("userId")    // id 파라미터 명
                 .passwordParameter("passwd")    //password 파라미터 명
-                .loginProcessingUrl("/login_proc")  // 로그인 처리 URL
+                /*.loginProcessingUrl("/login_proc")  // 로그인 처리 URL*/
                 .successHandler(new AuthenticationSuccessHandler() {        //로그인 성공 핸들러
                     @Override
                     public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
