@@ -2,6 +2,7 @@ package io.security.study.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -10,10 +11,15 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +51,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/shop/admin/**").access("hasRole('ADMIN') or hasRole('SYS')")     // ex) /shop/admin/pay 먼저 지정후 /shop/admin/** 지정.
                 .anyRequest().authenticated()*/
                 .authorizeRequests()
+                .antMatchers("/login").permitAll()
                 .antMatchers("/user").hasRole("USER")
                 .antMatchers("/admin/pay").hasRole("ADMIN")
                 .antMatchers("/admin/**").access("hasRole('ADMIN') or hasRole('SYS')")
@@ -58,11 +65,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .usernameParameter("userId")    // id 파라미터 명
                 .passwordParameter("passwd")    //password 파라미터 명
                 /*.loginProcessingUrl("/login_proc")  // 로그인 처리 URL*/
-                .successHandler(new AuthenticationSuccessHandler() {        //로그인 성공 핸들러
+                /*.successHandler(new AuthenticationSuccessHandler() {        //로그인 성공 핸들러
                     @Override
                     public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
                         System.out.println("authentication: "+ authentication.getName());
                         httpServletResponse.sendRedirect("/");
+                    }
+                })*/
+                .successHandler(new AuthenticationSuccessHandler() {    // 로그인 성공 핸들러 (인증 성공 이후 기존 로그인 요청했던[캐싱처리 된] URL로 이동.)
+                    @Override
+                    public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
+                        RequestCache requestCache = new HttpSessionRequestCache();
+                        SavedRequest savedRequest = requestCache.getRequest(httpServletRequest, httpServletResponse);       // 원래 사용자가 가고자했던 요청정보가 저장되어있음.
+                        String redirectUrl =  savedRequest.getRedirectUrl();                                                // 가고자 했던 URL 반환
+                        httpServletResponse.sendRedirect(redirectUrl);
                     }
                 })
                 .failureHandler(new AuthenticationFailureHandler() {        //로그인 실패 핸들러
@@ -123,6 +139,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 /*.expiredUrl("/expired")             // 세션 만료시 이동 URL*/
         ;
 
+
+        http
+                .exceptionHandling()            // 인증, 인가예외 시작
+                /*.authenticationEntryPoint(new AuthenticationEntryPoint() {  // 인증예외
+                    @Override
+                    public void commence(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
+                        httpServletResponse.sendRedirect("/login");
+                    }
+                })*/
+                .accessDeniedHandler(new AccessDeniedHandler() {    // 인가예외
+                    @Override
+                    public void handle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AccessDeniedException e) throws IOException, ServletException {
+                        httpServletResponse.sendRedirect("/denied");
+                    }
+                })
+        ;
 
     }
 }
