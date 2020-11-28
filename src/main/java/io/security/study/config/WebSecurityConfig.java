@@ -123,6 +123,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 /*.expiredUrl("/expired")             // 세션 만료시 이동 URL*/
         ;
 
+        http
+                .csrf()         //csrf 공격[요청자 위조 공격]방지를 위한 파라미터 생성 (기본)
+                /*.disable()*/  // 비활성.
+                ;
+
 
     }
 }
